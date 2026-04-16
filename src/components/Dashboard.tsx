@@ -20,6 +20,11 @@ const COLORS = ['#00f2fe', '#8942ff', '#10b981', '#f59e0b', '#ef4444', '#ec4899'
 export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecords }) => {
   const [timeFilter, setTimeFilter] = React.useState<'daily' | 'monthly' | 'yearly' | 'all'>('monthly');
   const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear());
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const availableYears = useMemo(() => {
     const years = new Set<number>();
@@ -217,69 +222,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
         />
       </div>
 
-      {/* Efficiency & Maintenance Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="glass-card p-6 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-white/5 text-accent-cyan">
-            <Activity size={24} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest">Consumo Médio</p>
-            <p className="text-2xl font-bold">{stats.efficiency.toFixed(2)} <span className="text-sm font-normal opacity-40">KM/L</span></p>
-          </div>
-        </div>
-
-        <div className="glass-card p-6 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-white/5 text-emerald-400">
-            <TrendingUp size={24} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest">Receita por KM</p>
-            <p className="text-2xl font-bold">{formatCurrency(stats.revenuePerKM)} <span className="text-sm font-normal opacity-40">/KM</span></p>
-          </div>
-        </div>
-
-        <div className={`glass-card p-6 flex items-center gap-4 border-l-4 ${maintenance.kmToOil < 1000 ? 'border-l-rose-500' : 'border-l-accent-cyan'}`}>
-          <div className={`p-3 rounded-xl bg-slate-500/5 ${maintenance.kmToOil < 1000 ? 'text-rose-400' : 'text-accent-cyan'}`}>
-            <AlertTriangle size={24} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest">Troca de Óleo em</p>
-            <p className="text-2xl font-bold">{maintenance.kmToOil.toLocaleString()} <span className="text-sm font-normal opacity-40">KM</span></p>
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue vs Expenses Chart */}
         <div className="glass-card p-6">
           <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50">Fluxo de Caixa (6 Meses)</h3>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <AreaChart data={monthlyData}>
-                <defs>
-                  <linearGradient id="colorRec" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#00f2fe" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorDes" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8942ff" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#8942ff" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10}} tickFormatter={(val) => `R$${val}`} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--glass-bg)', borderRadius: '16px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(10px)' }}
-                  itemStyle={{ color: 'var(--text-main)' }}
-                  formatter={(val: number) => formatCurrency(val)}
-                />
-                <Legend verticalAlign="top" height={36} iconType="circle" />
-                <Area type="monotone" dataKey="receita" stroke="#00f2fe" strokeWidth={3} fillOpacity={1} fill="url(#colorRec)" name="Receita" />
-                <Area type="monotone" dataKey="despesa" stroke="#8942ff" strokeWidth={3} fillOpacity={1} fill="url(#colorDes)" name="Despesa" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyData}>
+                  <defs>
+                    <linearGradient id="colorRec" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#00f2fe" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorDes" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8942ff" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#8942ff" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10}} tickFormatter={(val) => `R$${val}`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--glass-bg)', borderRadius: '16px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(10px)' }}
+                    itemStyle={{ color: 'var(--text-main)' }}
+                    formatter={(val: number) => formatCurrency(val)}
+                  />
+                  <Legend verticalAlign="top" height={36} iconType="circle" />
+                  <Area type="monotone" dataKey="receita" stroke="#00f2fe" strokeWidth={3} fillOpacity={1} fill="url(#colorRec)" name="Receita" />
+                  <Area type="monotone" dataKey="despesa" stroke="#8942ff" strokeWidth={3} fillOpacity={1} fill="url(#colorDes)" name="Despesa" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -287,30 +261,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
         <div className="glass-card p-6">
           <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50">Receita por Plataforma</h3>
           <div className="h-[300px] w-full flex items-center">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <PieChart>
-                <Pie
-                  data={platformStats.map(s => ({ name: s.name, value: s.revenue }))}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {platformStats.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--glass-bg)', borderRadius: '16px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(10px)' }}
-                  itemStyle={{ color: 'var(--text-main)' }}
-                  formatter={(val: number) => formatCurrency(val)}
-                />
-                <Legend iconType="square" />
-              </PieChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={platformStats.map(s => ({ name: s.name, value: s.revenue }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {platformStats.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--glass-bg)', borderRadius: '16px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(10px)' }}
+                    itemStyle={{ color: 'var(--text-main)' }}
+                    formatter={(val: number) => formatCurrency(val)}
+                  />
+                  <Legend iconType="square" />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
