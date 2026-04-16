@@ -68,9 +68,24 @@ export const Clients: React.FC<ClientsProps> = ({ clients, setClients, showToast
               <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-accent-cyan border border-white/10">
                 <Building2 size={24} />
               </div>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => { setEditing(client); setFormData(client); setModalOpen(true); }} className="p-2 text-white/30 hover:text-accent-cyan transition"><Edit3 size={16} /></button>
-                <button onClick={() => { if(confirm('Excluir?')) setClients(clients.filter(c => c.id !== client.id)); }} className="p-2 text-white/30 hover:text-rose-400 transition"><Trash2 size={16} /></button>
+              <div className="flex gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                <button 
+                  type="button"
+                  onClick={() => { setEditing(client); setFormData(client); setModalOpen(true); }} 
+                  className="p-2 text-accent-cyan lg:text-white/30 lg:hover:text-accent-cyan transition"
+                >
+                  <Edit3 size={16} />
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setClients(clients.filter(c => c.id !== client.id));
+                    showToast('Cliente removido!');
+                  }} 
+                  className="p-2 text-rose-400 lg:text-white/30 lg:hover:text-rose-400 transition"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
             <h3 className="text-lg font-bold mb-1 text-white">{client.empresa}</h3>

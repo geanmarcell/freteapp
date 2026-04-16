@@ -103,9 +103,25 @@ export const Fuel: React.FC<FuelProps> = ({ fuelRecords, setFuelRecords, expense
                 <td className="px-6 py-4 text-sm font-bold text-amber-400">{r.consumption.toFixed(2)} km/L</td>
                 <td className="px-6 py-4 text-sm font-bold text-right text-white">{formatCurrency(parseFloat(r.totalFuelCost))}</td>
                 <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditing(r); setFormData(r); setModalOpen(true); }} className="p-2 opacity-30 hover:text-accent-cyan transition hover:opacity-100"><Edit3 size={18} /></button>
-                    <button onClick={() => { if(confirm('Excluir?')) { setFuelRecords(fuelRecords.filter(x => x.id !== r.id)); setExpenses(expenses.filter(e => e.linkedFuelId !== r.id)); } }} className="p-2 opacity-30 hover:text-rose-400 transition hover:opacity-100"><Trash2 size={18} /></button>
+                  <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                    <button 
+                      type="button"
+                      onClick={() => { setEditing(r); setFormData(r); setModalOpen(true); }} 
+                      className="p-2 text-accent-cyan lg:opacity-30 lg:hover:opacity-100 transition"
+                    >
+                      <Edit3 size={18} />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setFuelRecords(fuelRecords.filter(x => x.id !== r.id)); 
+                        setExpenses(expenses.filter(e => e.linkedFuelId !== r.id));
+                        showToast('Registro excluído!');
+                      }} 
+                      className="p-2 text-rose-400 lg:opacity-30 lg:hover:opacity-100 transition"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </td>
               </tr>

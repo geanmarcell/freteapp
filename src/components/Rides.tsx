@@ -159,9 +159,24 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                     <p className="text-[10px] text-white/30 uppercase font-bold">{r.distance} km</p>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => { setEditing(r); setFormData(r); setModalOpen(true); }} className="p-2 opacity-30 hover:text-accent-cyan transition hover:opacity-100"><Edit3 size={18} /></button>
-                      <button onClick={() => { if(confirm('Excluir?')) setRides(rides.filter(x => x.id !== r.id)); }} className="p-2 opacity-30 hover:text-rose-400 transition hover:opacity-100"><Trash2 size={18} /></button>
+                    <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                      <button 
+                        type="button"
+                        onClick={() => { setEditing(r); setFormData(r); setModalOpen(true); }} 
+                        className="p-2 text-accent-cyan lg:opacity-30 lg:hover:opacity-100 transition"
+                      >
+                        <Edit3 size={18} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setRides(rides.filter(x => x.id !== r.id));
+                          showToast('Registro excluído!');
+                        }} 
+                        className="p-2 text-rose-400 lg:opacity-30 lg:hover:opacity-100 transition"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </td>
                 </tr>

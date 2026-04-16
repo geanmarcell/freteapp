@@ -80,7 +80,7 @@ export const Expenses: React.FC<ExpensesProps> = ({ expenses, setExpenses, showT
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {expenses.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(e => (
+            {[...expenses].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(e => (
               <tr key={e.id} className="hover:bg-white/5 transition-colors group">
                 <td className="px-6 py-4 text-sm font-medium">{formatDate(e.date)}</td>
                 <td className="px-6 py-4 text-sm text-white/60">
@@ -92,11 +92,26 @@ export const Expenses: React.FC<ExpensesProps> = ({ expenses, setExpenses, showT
                 </td>
                 <td className="px-6 py-4 text-sm font-bold text-rose-400 text-right">{formatCurrency(parseFloat(e.amount))}</td>
                 <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                     {!e.linkedFuelId && (
-                      <button onClick={() => { setEditing(e); setFormData(e); setModalOpen(true); }} className="p-2 opacity-30 hover:text-accent-cyan transition hover:opacity-100"><Edit3 size={18} /></button>
+                      <button 
+                        type="button"
+                        onClick={() => { setEditing(e); setFormData(e); setModalOpen(true); }} 
+                        className="p-2 text-accent-cyan lg:opacity-30 lg:hover:opacity-100 transition"
+                      >
+                        <Edit3 size={18} />
+                      </button>
                     )}
-                    <button onClick={() => handleDelete(e.id)} className="p-2 opacity-30 hover:text-rose-400 transition hover:opacity-100"><Trash2 size={18} /></button>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setExpenses(expenses.filter(x => x.id !== e.id));
+                        showToast('Despesa excluída!');
+                      }} 
+                      className="p-2 text-rose-400 lg:opacity-30 lg:hover:opacity-100 transition"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </td>
               </tr>
