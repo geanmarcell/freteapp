@@ -39,6 +39,7 @@ export interface Ride {
   origin: string;
   destination: string;
   tips: string;
+  duration?: string; // in minutes
   notes: string;
   clientId?: string;
   clientName?: string;

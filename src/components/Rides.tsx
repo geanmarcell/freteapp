@@ -28,6 +28,7 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
     type: 'ride',
     netValue: '',
     distance: '',
+    duration: '',
     origin: '',
     destination: '',
     tips: '',
@@ -244,6 +245,10 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Distância (km)</label>
                     <input type="number" step="0.1" required className="input-primary" value={formData.distance} onChange={e => setFormData({...formData, distance: e.target.value})} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Duração (minutos)</label>
+                    <input type="number" required placeholder="Ex: 25" className="input-primary" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} />
                   </div>
                 </div>
 
