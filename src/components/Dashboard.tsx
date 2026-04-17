@@ -61,8 +61,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
     const totalKM = filteredData.rides.reduce((acc, r) => acc + parseFloat(r.distance || '0'), 0);
     const totalLiters = filteredData.fuelRecords.reduce((acc, f) => acc + parseFloat(f.liters || '0'), 0);
     const totalRides = filteredData.rides.length;
-    const totalMinutes = filteredData.rides.reduce((acc, r) => acc + parseFloat(r.duration || '0'), 0);
-    const totalHours = totalMinutes / 60;
+    
+    // Group rides by date to calculate daily working hours (span between first and last ride)
+    const ridesByDate: Record<string, string[]> = {};
+    filteredData.rides.forEach(r => {
+      if (!ridesByDate[r.date]) ridesByDate[r.date] = [];
+      ridesByDate[r.date].push(r.time);
+    });
+
+    let totalHours = 0;
+    Object.values(ridesByDate).forEach(times => {
+      if (times.length > 1) {
+        const sorted = [...times].sort();
+        const start = sorted[0];
+        const end = sorted[sorted.length - 1];
+        
+        const [h1, m1] = start.split(':').map(Number);
+        const [h2, m2] = end.split(':').map(Number);
+        
+        const diffMinutes = (h2 * 60 + m2) - (h1 * 60 + m1);
+        totalHours += diffMinutes / 60;
+      } else if (times.length === 1) {
+        // Fallback for single ride days: use the average duration of trips or a default
+        const ride = filteredData.rides.find(r => r.time === times[0]);
+        totalHours += (parseFloat(ride?.duration || '30') / 60);
+      }
+    });
     
     const balance = totalRevenue - totalExpenses;
     const margin = totalRevenue > 0 ? (balance / totalRevenue) * 100 : 0;
@@ -113,7 +137,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
       return Math.ceil((date.getDay() + 1 + numberOfDays) / 7);
     };
 
-    const weeks: Record<string, { week: number; revenue: number; profit: number; hours: number; performance: number }> = {};
+    const weeks: Record<string, { week: number; revenue: number; profit: number; hours: number; performance: number; dates: Record<string, string[]> }> = {};
     
     // Process last 8 weeks
     const now = new Date();
@@ -123,7 +147,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
       const w = getWeek(d);
       const year = d.getFullYear();
       const key = `${year}-W${w}`;
-      weeks[key] = { week: w, revenue: 0, profit: 0, hours: 0, performance: 0 };
+      weeks[key] = { week: w, revenue: 0, profit: 0, hours: 0, performance: 0, dates: {} };
     }
 
     filteredData.rides.forEach(r => {
@@ -133,9 +157,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
       if (weeks[key]) {
         const rev = parseFloat(r.netValue || '0');
         weeks[key].revenue += rev;
-        weeks[key].profit += rev; // initially just revenue, expenses subtracted later
-        weeks[key].hours += parseFloat(r.duration || '0') / 60;
+        weeks[key].profit += rev;
+        
+        // Track times per date within the week
+        if (!weeks[key].dates[r.date]) weeks[key].dates[r.date] = [];
+        weeks[key].dates[r.date].push(r.time);
       }
+    });
+
+    // Calculate hours for each week based on daily spans
+    Object.keys(weeks).forEach(key => {
+      Object.entries(weeks[key].dates).forEach(([date, times]) => {
+        if (times.length > 1) {
+          const sorted = [...times].sort();
+          const [h1, m1] = sorted[0].split(':').map(Number);
+          const [h2, m2] = sorted[sorted.length - 1].split(':').map(Number);
+          weeks[key].hours += ((h2 * 60 + m2) - (h1 * 60 + m1)) / 60;
+        } else if (times.length === 1) {
+          const ride = filteredData.rides.find(r => r.date === date && r.time === times[0]);
+          weeks[key].hours += (parseFloat(ride?.duration || '30') / 60);
+        }
+      });
     });
 
     filteredData.expenses.forEach(e => {
