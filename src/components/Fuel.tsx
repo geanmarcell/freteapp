@@ -43,7 +43,7 @@ export const Fuel: React.FC<FuelProps> = ({ fuelRecords, setFuelRecords, expense
 
     if (editing) {
       setFuelRecords(fuelRecords.map(r => r.id === editing.id ? payload : r));
-      setExpenses(expenses.map(ex => ex.linkedFuelId === editing.id ? { ...ex, date: payload.date, amount: payload.totalFuelCost } : ex));
+      setExpenses(expenses.map(ex => ex.linkedFuelId === editing.id ? { ...ex, date: payload.date, amount: payload.totalFuelCost, currentKm: payload.endKm } : ex));
       showToast('Registro atualizado!');
     } else {
       const newId = generateId();
@@ -53,6 +53,7 @@ export const Fuel: React.FC<FuelProps> = ({ fuelRecords, setFuelRecords, expense
         date: payload.date, 
         description: '⛽ Abastecimento', 
         amount: payload.totalFuelCost, 
+        currentKm: payload.endKm,
         linkedFuelId: newId 
       }]);
       showToast('Abastecimento registrado!');

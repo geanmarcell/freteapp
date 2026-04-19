@@ -39,7 +39,19 @@ export default function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard rides={rides} expenses={expenses} fuelRecords={fuelRecords} />;
+        return (
+          <Dashboard 
+            rides={rides} 
+            expenses={expenses} 
+            fuelRecords={fuelRecords} 
+            clients={clients}
+            setRides={setRides}
+            setExpenses={setExpenses}
+            setFuelRecords={setFuelRecords}
+            setClients={setClients}
+            showToast={showToast}
+          />
+        );
       case 'rides':
         return <Rides rides={rides} setRides={setRides} clients={clients} showToast={showToast} />;
       case 'clients':
@@ -49,7 +61,19 @@ export default function App() {
       case 'expenses':
         return <Expenses expenses={expenses} setExpenses={setExpenses} showToast={showToast} />;
       default:
-        return <Dashboard rides={rides} expenses={expenses} fuelRecords={fuelRecords} />;
+        return (
+          <Dashboard 
+            rides={rides} 
+            expenses={expenses} 
+            fuelRecords={fuelRecords} 
+            clients={clients}
+            setRides={setRides}
+            setExpenses={setExpenses}
+            setFuelRecords={setFuelRecords}
+            setClients={setClients}
+            showToast={showToast}
+          />
+        );
     }
   };
 

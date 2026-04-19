@@ -3,12 +3,15 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   LineChart, Line, PieChart, Pie, Cell, AreaChart, Area 
 } from 'recharts';
-import { Ride, Expense, FuelRecord } from '../types';
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable';
+import { Ride, Expense, FuelRecord, Client } from '../types';
 import { PLATFORMS } from '../constants';
-import { formatCurrency, getTodayDateString } from '../lib/utils';
+import { formatCurrency, getTodayDateString, formatDate } from '../lib/utils';
 import { 
   TrendingUp, TrendingDown, DollarSign, Truck, Fuel, Wallet, Download, 
-  Activity, AlertTriangle, Clock, Navigation, Zap, BarChart3, LineChart as LucideLineChart 
+  Activity, AlertTriangle, Clock, Navigation, Zap, BarChart3, LineChart as LucideLineChart,
+  Save, Upload, FileText
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -16,14 +19,24 @@ interface DashboardProps {
   rides: Ride[];
   expenses: Expense[];
   fuelRecords: FuelRecord[];
+  clients: Client[];
+  setRides: (rides: Ride[]) => void;
+  setExpenses: (expenses: Expense[]) => void;
+  setFuelRecords: (records: FuelRecord[]) => void;
+  setClients: (clients: Client[]) => void;
+  showToast: (msg: string) => void;
 }
 
 const COLORS = ['#00f2fe', '#8942ff', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4'];
 
-export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecords }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ 
+  rides, expenses, fuelRecords, clients,
+  setRides, setExpenses, setFuelRecords, setClients, showToast
+}) => {
   const [timeFilter, setTimeFilter] = React.useState<'daily' | 'monthly' | 'yearly' | 'all'>('monthly');
   const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear());
   const [isMounted, setIsMounted] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -214,20 +227,130 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
     }));
   }, [filteredData, stats.totalExpenses, stats.totalRevenue]);
 
-  const exportToCSV = () => {
-    const headers = ['Data', 'Plataforma', 'Valor Liquido', 'KM Inicial', 'KM Final'];
-    const rows = filteredData.rides.map(r => [r.date, r.platform, r.netValue, r.initialKM, r.finalKM]);
+  const exportToPDF = () => {
+    const doc = new jsPDF();
     
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
+    // Header
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text("FRETE APP PRO", 14, 25);
+    doc.setFontSize(10);
+    doc.text(`RELATÓRIO OPERACIONAL | ${timeFilter.toUpperCase()} | ${selectedYear}`, 14, 32);
+    
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 145, 32);
+
+    // Summary Section
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.text("RESUMO FINANCEIRO", 14, 55);
+    
+    const summaryData = [
+      ['Total de Receita', formatCurrency(stats.totalRevenue)],
+      ['Total de Despesas', formatCurrency(stats.totalExpenses)],
+      ['Saldo Líquido', formatCurrency(stats.balance)],
+      ['Margem de Lucro', `${stats.margin.toFixed(1)}%`]
+    ];
+
+    autoTable(doc, {
+      startY: 60,
+      head: [['Métrica', 'Valor']],
+      body: summaryData,
+      theme: 'striped',
+      headStyles: { fillColor: [0, 242, 254] },
+    });
+
+    // Sub-summary
+    const finalY1 = (doc as any).lastAutoTable.finalY + 15;
+    doc.text("MÉTRICAS OPERACIONAIS", 14, finalY1);
+    
+    const operationalData = [
+      ['Total de Viagens', stats.totalRides.toString()],
+      ['Horas Logado', `${stats.totalHours.toFixed(1)}h`],
+      ['KM Rodado', `${stats.totalKM.toFixed(0)} km`],
+      ['Fat / KM', formatCurrency(stats.revPerKM)]
+    ];
+
+    autoTable(doc, {
+      startY: finalY1 + 5,
+      head: [['Métrica', 'Conteúdo']],
+      body: operationalData,
+      theme: 'grid',
+    });
+
+    // Rides Table
+    const finalY2 = (doc as any).lastAutoTable.finalY + 15;
+    doc.text("DETALHAMENTO DE VIAGENS", 14, finalY2);
+    
+    const ridesTable = filteredData.rides.map(r => [
+      formatDate(r.date),
+      PLATFORMS.find(p => p.id === r.platform)?.name || r.platform,
+      r.origin || r.pickupAddress || '-',
+      r.destination || r.deliveryAddress || '-',
+      formatCurrency(parseFloat(r.netValue))
+    ]);
+
+    autoTable(doc, {
+      startY: finalY2 + 5,
+      head: [['Data', 'Plataforma', 'Origem', 'Destino', 'Valor']],
+      body: ridesTable,
+      styles: { fontSize: 8 },
+    });
+
+    doc.save(`relatorio_${timeFilter}_${selectedYear}.pdf`);
+    showToast('PDF gerado com sucesso!');
+  };
+
+  const handleBackup = () => {
+    const backupData = {
+      rides,
+      expenses,
+      fuelRecords,
+      clients,
+      version: '1.0',
+      timestamp: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `relatorio_${timeFilter}_${selectedYear}.csv`);
-    link.style.visibility = 'hidden';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup_freteapp_${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    showToast('Backup criado com sucesso!');
+  };
+
+  const handleRestore = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        if (data.rides && data.expenses && data.fuelRecords) {
+          if (window.confirm('Isso substituirá todos os seus dados atuais. Deseja continuar?')) {
+            setRides(data.rides);
+            setExpenses(data.expenses);
+            setFuelRecords(data.fuelRecords);
+            setClients(data.clients || []);
+            showToast('Dados restaurados com sucesso!');
+          }
+        } else {
+          showToast('Formato de arquivo inválido.', 'error');
+        }
+      } catch (err) {
+        showToast('Erro ao ler arquivo de backup.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input
+    e.target.value = '';
   };
 
   const taxStats = useMemo(() => {
@@ -294,12 +417,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ rides, expenses, fuelRecor
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-light">Resumo Operacional</h2>
-          <button 
-            onClick={exportToCSV}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/70 transition"
-          >
-            <Download size={14} /> Exportar CSV
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={exportToPDF}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/70 transition"
+              title="Exportar para PDF"
+            >
+              <FileText size={14} className="text-rose-400" /> PDF
+            </button>
+            <div className="w-[1px] h-8 bg-white/5 mx-1" />
+            <button 
+              onClick={handleBackup}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/70 transition"
+              title="Criar Backup"
+            >
+              <Save size={14} className="text-accent-cyan" /> Backup
+            </button>
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/70 transition"
+              title="Restaurar Backup"
+            >
+              <Upload size={14} className="text-accent-purple" /> Restaurar
+            </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleRestore} 
+              accept=".json" 
+              className="hidden" 
+            />
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {timeFilter === 'yearly' && (
