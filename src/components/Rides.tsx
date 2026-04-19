@@ -122,6 +122,7 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40">Plataforma</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40">Origem/Destino</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40 text-right">Valor</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40 text-right">R$/KM</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40 text-right">Ações</th>
               </tr>
             </thead>
@@ -158,6 +159,14 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                   <td className="px-6 py-4 text-right">
                     <p className="text-sm font-bold text-accent-cyan">{formatCurrency(parseFloat(r.netValue))}</p>
                     <p className="text-[10px] text-white/30 uppercase font-bold">{r.distance} km</p>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <p className="text-sm font-bold text-emerald-400">
+                      {parseFloat(r.distance) > 0 
+                        ? formatCurrency(parseFloat(r.netValue) / parseFloat(r.distance)) 
+                        : '-'}
+                    </p>
+                    <p className="text-[10px] text-white/30 uppercase font-bold">por km</p>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
