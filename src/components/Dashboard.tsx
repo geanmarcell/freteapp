@@ -212,8 +212,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }));
   }, [filteredData]);
 
-  const dailyKmData = useMemo(() => {
-    const data: Record<string, { date: string; km: number }> = {};
+  const dailyTrendData = useMemo(() => {
+    const data: Record<string, { date: string; km: number; revenue: number }> = {};
     const now = new Date();
     
     // Last 15 days
@@ -222,12 +222,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       d.setDate(now.getDate() - i);
       const key = d.toISOString().split('T')[0];
       const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      data[key] = { date: label, km: 0 };
+      data[key] = { date: label, km: 0, revenue: 0 };
     }
 
     filteredData.rides.forEach(r => {
       if (data[r.date]) {
         data[r.date].km += parseFloat(r.distance || '0');
+        data[r.date].revenue += parseFloat(r.netValue || '0');
       }
     });
 
@@ -592,22 +593,45 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Daily KM Bar Chart */}
-        <div className="glass-card p-6 lg:col-span-2">
+        <div className="glass-card p-6 lg:col-span-1">
           <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50 flex items-center gap-2">
-            <Navigation size={16} /> Kilometragem Diária (Últimos 15 dias)
+            <Navigation size={16} /> Kilometragem Diária (15d)
           </h3>
           <div className="h-[250px] w-full">
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyKmData}>
+                <BarChart data={dailyTrendData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} tickFormatter={(val) => `${val} km`} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} tickFormatter={(val) => `${val}k`} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
                     formatter={(val: number) => [`${val.toFixed(1)} km`, 'Distância']}
                   />
                   <Bar dataKey="km" fill="#10b981" radius={[4, 4, 0, 0]} name="KM Rodado" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Daily Revenue Bar Chart */}
+        <div className="glass-card p-6 lg:col-span-1">
+          <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50 flex items-center gap-2">
+            <DollarSign size={16} /> Ganhos Diários (15d)
+          </h3>
+          <div className="h-[250px] w-full">
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} tickFormatter={(val) => `R$${val}`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
+                    formatter={(val: number) => [formatCurrency(val), 'Ganhos']}
+                  />
+                  <Bar dataKey="revenue" fill="#00f2fe" radius={[4, 4, 0, 0]} name="Receita" />
                 </BarChart>
               </ResponsiveContainer>
             )}
