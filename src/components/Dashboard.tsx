@@ -549,12 +549,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Weekly Revenue Chart */}
         <div className="glass-card p-6">
           <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50 flex items-center gap-2">
-            <LucideLineChart size={16} /> Faturamento por Semana
+            <BarChart3 size={16} /> Faturamento por Semana
           </h3>
           <div className="h-[250px] w-full">
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyData}>
+                <BarChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} />
                   <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} tickFormatter={(val) => `R$${val}`} />
@@ -562,8 +562,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
                     formatter={(val: number) => formatCurrency(val)}
                   />
-                  <Line type="monotone" dataKey="faturamento" stroke="#00f2fe" strokeWidth={3} dot={{ r: 4, fill: '#00f2fe' }} activeDot={{ r: 6 }} name="Faturamento" />
-                </LineChart>
+                  <Bar dataKey="faturamento" fill="#00f2fe" radius={[4, 4, 0, 0]} name="Faturamento" />
+                </BarChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -572,21 +572,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Weekly Performance Chart */}
         <div className="glass-card p-6">
           <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50 flex items-center gap-2">
-            <BarChart3 size={16} /> Performance Semana (R$/Hora)
+            <Zap size={16} /> Performance Semana (R$/Hora)
           </h3>
           <div className="h-[250px] w-full">
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyData}>
+                <BarChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} />
                   <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} tickFormatter={(val) => `R$${val}/h`} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
-                    formatter={(val: number) => `${formatCurrency(val)}/h`}
+                    formatter={(val: number) => [`${formatCurrency(val)}/h`, 'Performance']}
                   />
-                  <Line type="monotone" dataKey="performance" stroke="#8942ff" strokeWidth={3} dot={{ r: 4, fill: '#8942ff' }} activeDot={{ r: 6 }} name="R$ por Hora" />
-                </LineChart>
+                  <Bar dataKey="performance" fill="#8942ff" radius={[4, 4, 0, 0]} name="R$ por Hora" />
+                </BarChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -640,22 +640,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Revenue vs Expenses Chart */}
         <div className="glass-card p-6">
-          <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50">Fluxo de Caixa (6 Meses)</h3>
+          <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50 flex items-center gap-2">
+            <Activity size={16} /> Fluxo de Caixa (6 Meses)
+          </h3>
           <div className="h-[300px] w-full">
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyData}>
-                  <defs>
-                    <linearGradient id="colorRec" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#00f2fe" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorDes" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8942ff" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#8942ff" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                   <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10}} tickFormatter={(val) => `R$${val}`} />
                   <Tooltip 
@@ -664,9 +656,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     formatter={(val: number) => formatCurrency(val)}
                   />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
-                  <Area type="monotone" dataKey="receita" stroke="#00f2fe" strokeWidth={3} fillOpacity={1} fill="url(#colorRec)" name="Receita" />
-                  <Area type="monotone" dataKey="despesa" stroke="#8942ff" strokeWidth={3} fillOpacity={1} fill="url(#colorDes)" name="Despesa" />
-                </AreaChart>
+                  <Bar dataKey="receita" fill="#00f2fe" radius={[4, 4, 0, 0]} name="Receita" />
+                  <Bar dataKey="despesa" fill="#8942ff" radius={[4, 4, 0, 0]} name="Despesa" />
+                </BarChart>
               </ResponsiveContainer>
             )}
           </div>
