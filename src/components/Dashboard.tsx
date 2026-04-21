@@ -314,14 +314,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const ridesTable = filteredData.rides.map(r => [
       formatDate(r.date),
       PLATFORMS.find(p => p.id === r.platform)?.name || r.platform,
-      r.origin || r.pickupAddress || '-',
-      r.destination || r.deliveryAddress || '-',
       formatCurrency(parseFloat(r.netValue))
     ]);
 
     autoTable(doc, {
       startY: finalY2 + 5,
-      head: [['Data', 'Plataforma', 'Origem', 'Destino', 'Valor']],
+      head: [['Data', 'Plataforma', 'Valor']],
       body: ridesTable,
       styles: { fontSize: 8 },
     });

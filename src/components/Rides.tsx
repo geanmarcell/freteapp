@@ -29,8 +29,6 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
     netValue: '',
     distance: '',
     duration: '',
-    origin: '',
-    destination: '',
     tips: '',
     notes: '',
   });
@@ -40,8 +38,6 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
     if (search) {
       const t = search.toLowerCase();
       res = res.filter(r => 
-        r.origin?.toLowerCase().includes(t) || 
-        r.destination?.toLowerCase().includes(t) || 
         r.clientName?.toLowerCase().includes(t)
       );
     }
@@ -78,7 +74,6 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
         clientId: client.id,
         clientName: client.empresa,
         clientContact: client.telefone,
-        pickupAddress: `${client.endereco}, ${client.cidade} - ${client.estado}`,
       }));
     }
   };
@@ -91,7 +86,7 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={18} />
             <input 
               type="text" 
-              placeholder="Buscar por origem, destino ou cliente..." 
+              placeholder="Buscar por cliente ou plataforma..." 
               className="input-primary pl-10"
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -120,7 +115,6 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40">Data/Hora</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40">Tipo</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40">Plataforma</th>
-                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40">Origem/Destino</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40 text-right">Valor</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40 text-right">R$/KM</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/40 text-right">Ações</th>
@@ -145,16 +139,6 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                     <span className="text-sm text-white/70">
                       {PLATFORMS.find(p => p.id === r.platform)?.name || r.platform}
                     </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="max-w-[200px]">
-                      <p className="text-sm text-white/80 truncate" title={r.type === 'freight' ? r.pickupAddress : r.origin}>
-                        <span className="opacity-20 mr-1">De:</span> {r.type === 'freight' ? r.pickupAddress : r.origin}
-                      </p>
-                      <p className="text-sm text-white/50 truncate" title={r.type === 'freight' ? r.deliveryAddress : r.destination}>
-                        <span className="opacity-20 mr-1">Para:</span> {r.type === 'freight' ? r.deliveryAddress : r.destination}
-                      </p>
-                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <p className="text-sm font-bold text-accent-cyan">{formatCurrency(parseFloat(r.netValue))}</p>
@@ -261,7 +245,7 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                   </div>
                 </div>
 
-                {formData.type === 'freight' ? (
+                {formData.type === 'freight' && (
                   <div className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Cliente</label>
@@ -269,27 +253,6 @@ export const Rides: React.FC<RidesProps> = ({ rides, setRides, clients, showToas
                         <option value="" className="bg-[var(--bg-main)]">Selecione um cliente...</option>
                         {clients.map(c => <option key={c.id} value={c.id} className="bg-[var(--bg-main)]">{c.empresa}</option>)}
                       </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Local de Retirada</label>
-                        <input type="text" required className="input-primary" value={formData.pickupAddress} onChange={e => setFormData({...formData, pickupAddress: e.target.value})} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Local de Entrega</label>
-                        <input type="text" required className="input-primary" value={formData.deliveryAddress} onChange={e => setFormData({...formData, deliveryAddress: e.target.value})} />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Origem</label>
-                      <input type="text" required className="input-primary" value={formData.origin} onChange={e => setFormData({...formData, origin: e.target.value})} />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Destino</label>
-                      <input type="text" required className="input-primary" value={formData.destination} onChange={e => setFormData({...formData, destination: e.target.value})} />
                     </div>
                   </div>
                 )}
