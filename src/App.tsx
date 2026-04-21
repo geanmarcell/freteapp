@@ -10,6 +10,7 @@ import { Rides } from './components/Rides';
 import { Clients } from './components/Clients';
 import { Fuel } from './components/Fuel';
 import { Expenses } from './components/Expenses';
+import { FreightCalculator } from './components/FreightCalculator';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Ride, Client, FuelRecord, Expense } from './types';
 import { AnimatePresence, motion } from 'motion/react';
@@ -17,6 +18,7 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Ensure dark mode is always active
@@ -82,6 +84,7 @@ export default function App() {
       <Layout 
         activeTab={activeTab} 
         setActiveTab={setActiveTab}
+        onOpenCalculator={() => setIsCalculatorOpen(true)}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -95,6 +98,11 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </Layout>
+
+      <FreightCalculator 
+        isOpen={isCalculatorOpen} 
+        onClose={() => setIsCalculatorOpen(false)} 
+      />
 
       {/* Toast Notification */}
       <AnimatePresence>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Truck, Users, Fuel, Wallet, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Truck, Users, Fuel, Wallet, Menu, X, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
@@ -7,9 +7,10 @@ interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  onOpenCalculator: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onOpenCalculator }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const menuItems = [
@@ -50,6 +51,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                 {item.label}
               </button>
             ))}
+
+            <div className="pt-4 mt-4 border-t border-white/5">
+              <button
+                onClick={onOpenCalculator}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan/20 border border-accent-cyan/10 transition-all duration-300 shadow-lg shadow-accent-cyan/5"
+              >
+                <Calculator size={20} />
+                Calculadora de Frete
+              </button>
+            </div>
           </nav>
         </div>
 
@@ -100,6 +111,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                   {item.label}
                 </button>
               ))}
+
+              <div className="pt-6 mt-6 border-t border-white/5">
+                <button
+                  onClick={() => { onOpenCalculator(); setIsMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-lg font-bold bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/10"
+                >
+                  <Calculator size={24} />
+                  Calculadora de Frete
+                </button>
+              </div>
             </nav>
           </motion.div>
         )}
