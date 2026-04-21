@@ -101,6 +101,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     });
     
+    const workingDaysCount = Object.keys(ridesByDate).length;
+    const avgKmPerDay = workingDaysCount > 0 ? totalKM / workingDaysCount : 0;
+    
     const balance = totalRevenue - totalExpenses;
     const margin = totalRevenue > 0 ? (balance / totalRevenue) * 100 : 0;
     const efficiency = totalLiters > 0 ? totalKM / totalLiters : 0;
@@ -122,7 +125,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     
     return { 
       totalRevenue, totalExpenses, balance, margin, totalFuel, totalKM, efficiency, 
-      totalRides, totalHours,
+      totalRides, totalHours, workingDaysCount, avgKmPerDay,
       revPerRide, revPerHour, revPerKM,
       costPerRide, costPerHour, costPerKM,
       profitPerRide, profitPerHour, profitPerKM
@@ -207,6 +210,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
       faturamento: w.revenue,
       performance: w.hours > 0 ? (w.revenue / w.hours) : 0,
     }));
+  }, [filteredData]);
+
+  const dailyKmData = useMemo(() => {
+    const data: Record<string, { date: string; km: number }> = {};
+    const now = new Date();
+    
+    // Last 15 days
+    for (let i = 14; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      data[key] = { date: label, km: 0 };
+    }
+
+    filteredData.rides.forEach(r => {
+      if (data[r.date]) {
+        data[r.date].km += parseFloat(r.distance || '0');
+      }
+    });
+
+    return Object.values(data);
   }, [filteredData]);
 
   const expenseBreakdown = useMemo(() => {
@@ -396,17 +421,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [filteredData]);
 
   const platformStats = useMemo(() => {
-    const stats: Record<string, { name: string; count: number; revenue: number }> = {};
+    const stats: Record<string, { name: string; count: number; revenue: number; distance: number }> = {};
     filteredData.rides.forEach(r => {
       if (!stats[r.platform]) {
         stats[r.platform] = { 
           name: PLATFORMS.find(p => p.id === r.platform)?.name || r.platform, 
           count: 0, 
-          revenue: 0 
+          revenue: 0,
+          distance: 0
         };
       }
       stats[r.platform].count += 1;
       stats[r.platform].revenue += parseFloat(r.netValue || '0');
+      stats[r.platform].distance += parseFloat(r.distance || '0');
     });
     return Object.values(stats).sort((a, b) => b.revenue - a.revenue);
   }, [filteredData]);
@@ -493,10 +520,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Operational Metrics */}
       <div className="space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest text-white/30 ml-1">Métricas Operacionais</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           <StatsCard title="Total Viagens" value={stats.totalRides} icon={Truck} color="text-accent-cyan" tiny />
           <StatsCard title="Horas Logado" value={`${stats.totalHours.toFixed(1)}h`} icon={Clock} color="text-accent-purple" tiny />
           <StatsCard title="KM Rodado" value={`${stats.totalKM.toFixed(0)} km`} icon={Navigation} color="text-amber-400" tiny />
+          <StatsCard title="KM / Dia" value={`${stats.avgKmPerDay.toFixed(0)} km`} icon={Activity} color="text-emerald-400" tiny />
           <StatsCard title="Fat / Viagem" value={formatCurrency(stats.revPerRide)} icon={DollarSign} color="text-emerald-400" tiny />
           <StatsCard title="Fat / Hora" value={formatCurrency(stats.revPerHour)} icon={Zap} color="text-accent-cyan" tiny />
           <StatsCard title="Fat / KM" value={formatCurrency(stats.revPerKM)} icon={BarChart3} color="text-accent-purple" tiny />
@@ -558,6 +586,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   />
                   <Line type="monotone" dataKey="performance" stroke="#8942ff" strokeWidth={3} dot={{ r: 4, fill: '#8942ff' }} activeDot={{ r: 6 }} name="R$ por Hora" />
                 </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Daily KM Bar Chart */}
+        <div className="glass-card p-6 lg:col-span-2">
+          <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-white/50 flex items-center gap-2">
+            <Navigation size={16} /> Kilometragem Diária (Últimos 15 dias)
+          </h3>
+          <div className="h-[250px] w-full">
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyKmData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: 'rgba(255,255,255,0.4)'}} tickFormatter={(val) => `${val} km`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
+                    formatter={(val: number) => [`${val.toFixed(1)} km`, 'Distância']}
+                  />
+                  <Bar dataKey="km" fill="#10b981" radius={[4, 4, 0, 0]} name="KM Rodado" />
+                </BarChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -683,6 +734,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <tr className="bg-slate-500/5 border-b border-slate-500/5">
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest opacity-50">Plataforma</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest opacity-50 text-center">Qtd.</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest opacity-50 text-center">KM</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest opacity-50 text-right">Ganhos</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest opacity-50 text-right">%</th>
                 </tr>
@@ -695,6 +747,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span className="text-sm font-medium">{s.name}</span>
                     </td>
                     <td className="px-6 py-4 text-sm opacity-70 text-center font-mono">{s.count}</td>
+                    <td className="px-6 py-4 text-sm opacity-70 text-center font-mono">{s.distance.toFixed(0)} km</td>
                     <td className="px-6 py-4 text-sm font-bold text-accent-cyan text-right">{formatCurrency(s.revenue)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
