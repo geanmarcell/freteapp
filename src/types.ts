@@ -36,16 +36,12 @@ export interface Ride {
   type: 'ride' | 'freight';
   netValue: string;
   distance: string;
-  origin: string;
-  destination: string;
   tips: string;
   duration?: string; // in minutes
   notes: string;
   clientId?: string;
   clientName?: string;
   clientContact?: string;
-  pickupAddress?: string;
-  deliveryAddress?: string;
   invoiceNumber?: string;
 }
 
