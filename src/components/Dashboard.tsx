@@ -235,6 +235,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return Object.values(data);
   }, [filteredData]);
 
+  const dailyTrendData = useMemo(() => {
+    const data: Record<string, { date: string; km: number; revenue: number }> = {};
+    const now = new Date();
+    
+    // Last 15 days
+    for (let i = 14; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      data[key] = { date: label, km: 0, revenue: 0 };
+    }
+
+    filteredData.rides.forEach(r => {
+      if (data[r.date]) {
+        data[r.date].km += parseFloat(r.distance || '0');
+        data[r.date].revenue += parseFloat(r.netValue || '0');
+      }
+    });
+
+    return Object.values(data);
+  }, [filteredData]);
+
   const expenseBreakdown = useMemo(() => {
     const breakdown: Record<string, { type: string; amount: number }> = {};
     const totalRev = stats.totalRevenue;
