@@ -62,6 +62,8 @@ export default function App() {
         return <Fuel fuelRecords={fuelRecords} setFuelRecords={setFuelRecords} expenses={expenses} setExpenses={setExpenses} showToast={showToast} />;
       case 'expenses':
         return <Expenses expenses={expenses} setExpenses={setExpenses} showToast={showToast} />;
+      case 'freight_calculator':
+        return <FreightCalculator isOpen={true} onClose={() => setActiveTab('dashboard')} isTabMode={true} />;
       default:
         return (
           <Dashboard 
@@ -84,7 +86,7 @@ export default function App() {
       <Layout 
         activeTab={activeTab} 
         setActiveTab={setActiveTab}
-        onOpenCalculator={() => setIsCalculatorOpen(true)}
+        onOpenCalculator={() => setActiveTab('freight_calculator')}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -98,11 +100,6 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </Layout>
-
-      <FreightCalculator 
-        isOpen={isCalculatorOpen} 
-        onClose={() => setIsCalculatorOpen(false)} 
-      />
 
       {/* Toast Notification */}
       <AnimatePresence>

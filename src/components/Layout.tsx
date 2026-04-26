@@ -19,6 +19,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     { id: 'clients', label: 'Clientes', icon: Users },
     { id: 'fuel', label: 'Combustível', icon: Fuel },
     { id: 'expenses', label: 'Despesas', icon: Wallet },
+    { id: 'freight_calculator', label: 'Calculadora de Frete', icon: Calculator },
   ];
 
   return (
@@ -51,16 +52,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                 {item.label}
               </button>
             ))}
-
-            <div className="pt-4 mt-4 border-t border-white/5">
-              <button
-                onClick={onOpenCalculator}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan/20 border border-accent-cyan/10 transition-all duration-300 shadow-lg shadow-accent-cyan/5"
-              >
-                <Calculator size={20} />
-                Calculadora de Frete
-              </button>
-            </div>
           </nav>
         </div>
 
@@ -111,16 +102,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                   {item.label}
                 </button>
               ))}
-
-              <div className="pt-6 mt-6 border-t border-white/5">
-                <button
-                  onClick={() => { onOpenCalculator(); setIsMobileMenuOpen(false); }}
-                  className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-lg font-bold bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/10"
-                >
-                  <Calculator size={24} />
-                  Calculadora de Frete
-                </button>
-              </div>
             </nav>
           </motion.div>
         )}
@@ -128,7 +109,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
       {/* Main Content */}
       <main className="flex-1 p-4 lg:p-12 pt-20 lg:pt-12 overflow-x-hidden">
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full">
           <header className="mb-10">
             <h2 className="text-3xl font-light mb-2 text-white">
               {menuItems.find(i => i.id === activeTab)?.label}
